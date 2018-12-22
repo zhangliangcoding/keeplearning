@@ -169,6 +169,9 @@ AbstractMap 实现了Map接口的抽象类，实现了一些常用的基础的�
     UNTREEIFY_THRESHOLD = 6; 红黑树转成链表结构元素个数阈值 6
 
     MIN_TREEIFY_CAPACITY = 64; 转换红黑树 最小元素个数 64 ，当map的size>64时，符合条件的桶才会进行红黑树转换
+    
+    
+
 
 
 
