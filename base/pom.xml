@@ -11,9 +11,7 @@
 
     <artifactId>base</artifactId>
     <packaging>pom</packaging>
-    <modules>
-        <module>test</module>
-    </modules>
+
 
 
 </project>
