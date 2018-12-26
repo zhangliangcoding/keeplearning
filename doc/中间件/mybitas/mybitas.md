@@ -16,7 +16,7 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
 在Mybatis中，SqlSessionFactory 和 SqlSession 有着重要的作用，SqlSessionFactory为我们生成SqlSession，通过SqlSession我们可以进行增删改查等操作
 在SqlSessionFactory中，声明了Configuration类，此类包含了大量的配置基础信息，我们在项目中配置的mybatis-config.xml就是配置的Configuration类的内容
 例如Environment -> DataSource ,mapper.xml文件等，在不继承Spring相关的东西，单纯使用Mybatis进行数据操作,首先要配置的就是Configuration类的相关信息
-如下：config.xml
+如下：config.xml(名字随意)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +51,116 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
     </settings>
 ```
 
-config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进行解析的
+config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进行解析的，通过使用sax的DocumentBuilder，解析成Document
+调用parse()方法，通过解析/configuration node ，初始化Configuration类。Configuration创建后进而创建DefaultSqlSessionFactory
+parse()方法，主要调用下面方法进行解析初始化Configuration
+```java
+private void parseConfiguration(XNode root) {
+    try {
+      //issue #117 read properties first
+      propertiesElement(root.evalNode("properties"));
+      Properties settings = settingsAsProperties(root.evalNode("settings"));
+      loadCustomVfs(settings);
+      typeAliasesElement(root.evalNode("typeAliases"));
+      pluginElement(root.evalNode("plugins"));
+      objectFactoryElement(root.evalNode("objectFactory"));
+      objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      settingsElement(settings);
+      // read it after objectFactory and objectWrapperFactory issue #631
+      environmentsElement(root.evalNode("environments"));
+      databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      typeHandlerElement(root.evalNode("typeHandlers"));
+      mapperElement(root.evalNode("mappers"));
+    } catch (Exception e) {
+      throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
+    }
+  }
+```
+environmentsElement方法会把配置的数据源加载到配置中，mapperElement方法是加载对应的mapper.xml文件的，通过XMLMapperBuilder解析mapper下面的文件，
+解析mapper后转成statement主要是XMLStatementBuilder.parseStatementNode方法
+```java
+public void parseStatementNode() {
+    String id = context.getStringAttribute("id");
+    String databaseId = context.getStringAttribute("databaseId");
+
+    if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
+      return;
+    }
+
+    Integer fetchSize = context.getIntAttribute("fetchSize");
+    Integer timeout = context.getIntAttribute("timeout");
+    String parameterMap = context.getStringAttribute("parameterMap");
+    String parameterType = context.getStringAttribute("parameterType");
+    Class<?> parameterTypeClass = resolveClass(parameterType);
+    String resultMap = context.getStringAttribute("resultMap");
+    String resultType = context.getStringAttribute("resultType");
+    String lang = context.getStringAttribute("lang");
+    LanguageDriver langDriver = getLanguageDriver(lang);
+
+    Class<?> resultTypeClass = resolveClass(resultType);
+    String resultSetType = context.getStringAttribute("resultSetType");
+    StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
+    ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
+
+    String nodeName = context.getNode().getNodeName();
+    SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+    boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+    boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
+    boolean useCache = context.getBooleanAttribute("useCache", isSelect);
+    boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
+
+    // Include Fragments before parsing
+    XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
+    includeParser.applyIncludes(context.getNode());
+
+    // Parse selectKey after includes and remove them.
+    processSelectKeyNodes(id, parameterTypeClass, langDriver);
+    
+    // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
+    SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+    String resultSets = context.getStringAttribute("resultSets");
+    String keyProperty = context.getStringAttribute("keyProperty");
+    String keyColumn = context.getStringAttribute("keyColumn");
+    KeyGenerator keyGenerator;
+    String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
+    keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
+    if (configuration.hasKeyGenerator(keyStatementId)) {
+      keyGenerator = configuration.getKeyGenerator(keyStatementId);
+    } else {
+      keyGenerator = context.getBooleanAttribute("useGeneratedKeys",
+          configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
+          ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+    }
+
+    builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
+        fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
+        resultSetTypeEnum, flushCache, useCache, resultOrdered, 
+        keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
+  }
+```
+最终通过builderAssistant.addMappedStatement方法，把mapper中声明的所有操作存入Configuration的mappedStatements map集合中
+
+数据源，sql操作都已经加载到了Configuration中了，就差调用执行了。
+
+```java
+private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    Transaction tx = null;
+    try {
+      final Environment environment = configuration.getEnvironment();
+      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      final Executor executor = configuration.newExecutor(tx, execType);
+      return new DefaultSqlSession(configuration, executor, autoCommit);
+    } catch (Exception e) {
+      closeTransaction(tx); // may have fetched a connection so lets call close()
+      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+```
+在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作
 
 local cache 默认session缓存，事务问题
 https://segmentfault.com/a/1190000008207977

@@ -43,6 +43,6 @@
     <mappers>
         <!-- resource要写成路径 -->
         <mapper resource="com.learning.mapping/UserMapper.xml"/>
-        <!--<package name=""/>&lt;!&ndash; ???用处？？？ &ndash;&gt;-->
+        <!--<package name="com.learning.mapping"/>&lt;!&ndash; ???用处？？？ &ndash;&gt;-->
     </mappers>
 </configuration>
