@@ -1,5 +1,7 @@
 package com.learning.mybitas;
 
+import org.apache.ibatis.annotations.Param;
+
 /**
  * @Auther: zhangll
  * @Date: 2018/12/25 17:38
@@ -8,5 +10,5 @@ package com.learning.mybitas;
 public interface UserDao {
 //    void save(User user);
 
-    User selectById(Integer id);
+    User selectById(@Param("id") Integer id);
 }

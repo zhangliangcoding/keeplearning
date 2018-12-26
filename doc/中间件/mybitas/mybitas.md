@@ -55,112 +55,164 @@ config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进�
 调用parse()方法，通过解析/configuration node ，初始化Configuration类。Configuration创建后进而创建DefaultSqlSessionFactory
 parse()方法，主要调用下面方法进行解析初始化Configuration
 ```java
-private void parseConfiguration(XNode root) {
-    try {
-      //issue #117 read properties first
-      propertiesElement(root.evalNode("properties"));
-      Properties settings = settingsAsProperties(root.evalNode("settings"));
-      loadCustomVfs(settings);
-      typeAliasesElement(root.evalNode("typeAliases"));
-      pluginElement(root.evalNode("plugins"));
-      objectFactoryElement(root.evalNode("objectFactory"));
-      objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
-      reflectorFactoryElement(root.evalNode("reflectorFactory"));
-      settingsElement(settings);
-      // read it after objectFactory and objectWrapperFactory issue #631
-      environmentsElement(root.evalNode("environments"));
-      databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-      typeHandlerElement(root.evalNode("typeHandlers"));
-      mapperElement(root.evalNode("mappers"));
-    } catch (Exception e) {
-      throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
-    }
+public class XMLConfigBuilder extends BaseBuilder {
+    //....
+    private void parseConfiguration(XNode root) {
+        try {
+          //issue #117 read properties first
+          propertiesElement(root.evalNode("properties"));
+          Properties settings = settingsAsProperties(root.evalNode("settings"));
+          loadCustomVfs(settings);
+          typeAliasesElement(root.evalNode("typeAliases"));
+          pluginElement(root.evalNode("plugins"));
+          objectFactoryElement(root.evalNode("objectFactory"));
+          objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+          reflectorFactoryElement(root.evalNode("reflectorFactory"));
+          settingsElement(settings);
+          // read it after objectFactory and objectWrapperFactory issue #631
+          environmentsElement(root.evalNode("environments"));
+          databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+          typeHandlerElement(root.evalNode("typeHandlers"));
+          mapperElement(root.evalNode("mappers"));
+        } catch (Exception e) {
+          throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
+        }
+      }
+  //....
   }
 ```
 environmentsElement方法会把配置的数据源加载到配置中，mapperElement方法是加载对应的mapper.xml文件的，通过XMLMapperBuilder解析mapper下面的文件，
 解析mapper后转成statement主要是XMLStatementBuilder.parseStatementNode方法
 ```java
-public void parseStatementNode() {
-    String id = context.getStringAttribute("id");
-    String databaseId = context.getStringAttribute("databaseId");
-
-    if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
-      return;
-    }
-
-    Integer fetchSize = context.getIntAttribute("fetchSize");
-    Integer timeout = context.getIntAttribute("timeout");
-    String parameterMap = context.getStringAttribute("parameterMap");
-    String parameterType = context.getStringAttribute("parameterType");
-    Class<?> parameterTypeClass = resolveClass(parameterType);
-    String resultMap = context.getStringAttribute("resultMap");
-    String resultType = context.getStringAttribute("resultType");
-    String lang = context.getStringAttribute("lang");
-    LanguageDriver langDriver = getLanguageDriver(lang);
-
-    Class<?> resultTypeClass = resolveClass(resultType);
-    String resultSetType = context.getStringAttribute("resultSetType");
-    StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
-    ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
-
-    String nodeName = context.getNode().getNodeName();
-    SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
-    boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
-    boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
-    boolean useCache = context.getBooleanAttribute("useCache", isSelect);
-    boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
-
-    // Include Fragments before parsing
-    XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
-    includeParser.applyIncludes(context.getNode());
-
-    // Parse selectKey after includes and remove them.
-    processSelectKeyNodes(id, parameterTypeClass, langDriver);
+public class XMLStatementBuilder extends BaseBuilder {
+    //....
+    public void parseStatementNode() {
+        String id = context.getStringAttribute("id");
+        String databaseId = context.getStringAttribute("databaseId");
     
-    // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
-    SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
-    String resultSets = context.getStringAttribute("resultSets");
-    String keyProperty = context.getStringAttribute("keyProperty");
-    String keyColumn = context.getStringAttribute("keyColumn");
-    KeyGenerator keyGenerator;
-    String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
-    keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
-    if (configuration.hasKeyGenerator(keyStatementId)) {
-      keyGenerator = configuration.getKeyGenerator(keyStatementId);
-    } else {
-      keyGenerator = context.getBooleanAttribute("useGeneratedKeys",
-          configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
-          ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
-    }
-
-    builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
-        fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
-        resultSetTypeEnum, flushCache, useCache, resultOrdered, 
-        keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
+        if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
+          return;
+        }
+    
+        Integer fetchSize = context.getIntAttribute("fetchSize");
+        Integer timeout = context.getIntAttribute("timeout");
+        String parameterMap = context.getStringAttribute("parameterMap");
+        String parameterType = context.getStringAttribute("parameterType");
+        Class<?> parameterTypeClass = resolveClass(parameterType);
+        String resultMap = context.getStringAttribute("resultMap");
+        String resultType = context.getStringAttribute("resultType");
+        String lang = context.getStringAttribute("lang");
+        LanguageDriver langDriver = getLanguageDriver(lang);
+    
+        Class<?> resultTypeClass = resolveClass(resultType);
+        String resultSetType = context.getStringAttribute("resultSetType");
+        StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
+        ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
+    
+        String nodeName = context.getNode().getNodeName();
+        SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+        boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+        boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
+        boolean useCache = context.getBooleanAttribute("useCache", isSelect);
+        boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
+    
+        // Include Fragments before parsing
+        XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
+        includeParser.applyIncludes(context.getNode());
+    
+        // Parse selectKey after includes and remove them.
+        processSelectKeyNodes(id, parameterTypeClass, langDriver);
+        
+        // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
+        SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+        String resultSets = context.getStringAttribute("resultSets");
+        String keyProperty = context.getStringAttribute("keyProperty");
+        String keyColumn = context.getStringAttribute("keyColumn");
+        KeyGenerator keyGenerator;
+        String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
+        keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
+        if (configuration.hasKeyGenerator(keyStatementId)) {
+          keyGenerator = configuration.getKeyGenerator(keyStatementId);
+        } else {
+          keyGenerator = context.getBooleanAttribute("useGeneratedKeys",
+              configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
+              ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+        }
+    
+        builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
+            fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
+            resultSetTypeEnum, flushCache, useCache, resultOrdered, 
+            keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
+      }
+      //....
   }
 ```
-最终通过builderAssistant.addMappedStatement方法，把mapper中声明的所有操作存入Configuration的mappedStatements map集合中
+我们写的sql语句有些事最基本的查询，有些是动态sql，怎么来区分呢？当我们没有配置lang属性值，默认加载时XMLStatementDriver，
+XMLStatementDriver.createSqlSource方法，根据sql是否包含动态语句，创建不同的SqlSource(DynamicSqlSource或者RawSqlSource),虽然有这个逻辑，但是在判断是否是动态语句的，
+无论是否是动态语句，都会把它当成动态语句来处理，也就是说，都会加载DynamicSqlSource，下面看下判断动态语句的逻辑
 
+TextSqlNode.java
+```java
+class TextSqlNode  implements SqlNode {
+    //......
+    public boolean isDynamic() {
+        DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
+        GenericTokenParser parser = createParser(checker);
+        parser.parse(text);//这个地方会吧SQL进行处理，返回一个String sql
+        return checker.isDynamic();
+    }
+    //......
+}
+```
+DynamicCheckerTokenParser.java
+```java
+private static class DynamicCheckerTokenParser implements TokenHandler {
+
+    private boolean isDynamic;
+
+    public DynamicCheckerTokenParser() {
+      // Prevent Synthetic Access
+    }
+
+    public boolean isDynamic() {
+      return isDynamic;
+    }
+
+    @Override
+    public String handleToken(String content) {
+      this.isDynamic = true;//永远是动态语句
+      return null;
+    }
+  }
+```
+在createParser(checker) 方法中会调用DynamicCheckerTokenParser.handleToken 方法，设置isDynamic
+所有关于mapper的准备工作做好之后，最终通过builderAssistant.addMappedStatement方法，把mapper中声明的所有操作存入Configuration的mappedStatements map集合中
+方便后面调用的时候从mappedStatements中通过id(mapp.xml文件的namespace+.+方法名 如com.xxx.xxx.UserMapper.selectByKey)做为Key取出对应的MappedStatement
 数据源，sql操作都已经加载到了Configuration中了，就差调用执行了。
 
+下面开始进入调用流程，在调用的时候肯定是要先创建一个SqlSession的啦
 ```java
-private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
-    Transaction tx = null;
-    try {
-      final Environment environment = configuration.getEnvironment();
-      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
-      final Executor executor = configuration.newExecutor(tx, execType);
-      return new DefaultSqlSession(configuration, executor, autoCommit);
-    } catch (Exception e) {
-      closeTransaction(tx); // may have fetched a connection so lets call close()
-      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
-    } finally {
-      ErrorContext.instance().reset();
+public class DefaultSqlSessionFactory implements SqlSessionFactory {
+    //....
+    private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+        Transaction tx = null;
+        try {
+          final Environment environment = configuration.getEnvironment();
+          final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+          tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+          final Executor executor = configuration.newExecutor(tx, execType);
+          return new DefaultSqlSession(configuration, executor, autoCommit);
+        } catch (Exception e) {
+          closeTransaction(tx); // may have fetched a connection so lets call close()
+          throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
+        } finally {
+          ErrorContext.instance().reset();
+        }
     }
+    //....
   }
 ```
-在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作
+在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor
 
 local cache 默认session缓存，事务问题
 https://segmentfault.com/a/1190000008207977
