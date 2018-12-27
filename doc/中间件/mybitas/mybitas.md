@@ -16,7 +16,7 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
 在Mybatis中，SqlSessionFactory 和 SqlSession 有着重要的作用，SqlSessionFactory为我们生成SqlSession，通过SqlSession我们可以进行增删改查等操作
 在SqlSessionFactory中，声明了Configuration类，此类包含了大量的配置基础信息，我们在项目中配置的mybatis-config.xml就是配置的Configuration类的内容
 例如Environment -> DataSource ,mapper.xml文件等，在不继承Spring相关的东西，单纯使用Mybatis进行数据操作,首先要配置的就是Configuration类的相关信息
-如下：config.xml(名字随意)
+如下：mybatis-config.xml
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +51,7 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
     </settings>
 ```
 
-config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进行解析的，通过使用sax的DocumentBuilder，解析成Document
+mybatis-config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进行解析的，通过使用sax的DocumentBuilder，解析成Document
 调用parse()方法，通过解析/configuration node ，初始化Configuration类。Configuration创建后进而创建DefaultSqlSessionFactory
 parse()方法，主要调用下面方法进行解析初始化Configuration
 ```java
@@ -212,7 +212,64 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     //....
   }
 ```
-在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor
+在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor，在执行的时候又会设计到缓存Cache，
+Executor接口和Cache分别有以下几个实现类，后面会单独写一篇文章来介绍Executor和Cache。在我们的执行增删改查的sql时，最终都会通过Executor的doUpdate和doQuery来完成
+![avatar](Executor&Cache.png)
+在创建Configuration的时候，默认的是SimpleExecutor,在创建Executor的时候，用CachingExecutor包装了一下，调用走的CachingExecutor的包装逻辑，
+再走SimpleExecutor的相关逻辑。
+```java
+public class CachingExecutor implements Executor {
+    //...
+    public CachingExecutor(Executor delegate) {
+        this.delegate = delegate;//在创建Configuration时，此处的delegate是SimpleExecutor
+        delegate.setExecutorWrapper(this);
+      }
+    //....
+    }
+```
+下面是用CachingExecutor和默认的PerpetualCache实现的查询代码
+```java
+public class CachingExecutor implements Executor { 
+    //....
+      @Override
+      public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+        BoundSql boundSql = ms.getBoundSql(parameterObject);
+        CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);//构建本地缓存key
+        return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+      }
+    @Override
+    public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
+        throws SQLException {
+      Cache cache = ms.getCache();
+      if (cache != null) {
+        flushCacheIfRequired(ms);
+        if (ms.isUseCache() && resultHandler == null) {
+          ensureNoOutParams(ms, boundSql);
+          @SuppressWarnings("unchecked")
+          List<E> list = (List<E>) tcm.getObject(cache, key);
+          if (list == null) {
+            list = delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+            tcm.putObject(cache, key, list); // issue #578 and #116
+          }
+          return list;
+        }
+      }
+      return delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+    }
+    //....
+}
+```
+对于上面的ms.isUseCache()，我们往上追踪，发现只要是Select查询，就会默认是用本地缓存的
+
+```java
+    boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+    boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
+    boolean useCache = context.getBooleanAttribute("useCache", isSelect);
+```
+在执行完成后，会有相应的ResultHandler来处理返回结果，最终返回给调用方。
+
+这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。
+
 
 local cache 默认session缓存，事务问题
 https://segmentfault.com/a/1190000008207977
