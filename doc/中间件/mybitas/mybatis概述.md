@@ -1,11 +1,11 @@
-##Mybatis
+##Mybatis概述
 
 > MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 
 JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML 或注解来配置和映射原生信息，将接口
 和 Java 的 POJOs(Plain Old Java Objects,普通的 Java对象)映射成数据库中的记录。 -- 官网
 
 ###整体架构
-![avatar](Mybatis架构.png)
+![avatar](img/Mybatis架构.png)
 通过上图可以对Mybatis的架构有一个大概的了解，我们从程序启动加载xml相关配置，到执行操作返回数据的路线，来进行流程梳理及源码解析，大致分为以下几个流程
 - 配置信息初始化
 - 接受调用创建会话
@@ -49,6 +49,22 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
     <settings>
         <setting name="logImpl" value="LOG4J"/>
     </settings>
+```
+
+简单示例
+```java
+public class MybitasTest {
+
+    public static void main(String[] args) throws IOException {
+        String config = "com/learning/mapping/config.xml";
+        InputStream inputStream = Resources.getResourceAsStream(config);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession session = sqlSessionFactory.openSession();
+        User user = session.selectOne("test.selectById", 1);
+        System.out.println(user.getAge());
+    }
+
+}
 ```
 
 mybatis-config.xml文件的解析是通过org.ibatis.builder.xml.XMLConfigBuilder来进行解析的，通过使用sax的DocumentBuilder，解析成Document
@@ -214,7 +230,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
 ```
 在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor，在执行的时候又会设计到缓存Cache，
 Executor接口和Cache分别有以下几个实现类，后面会单独写一篇文章来介绍Executor和Cache。在我们的执行增删改查的sql时，最终都会通过Executor的doUpdate和doQuery来完成
-![avatar](Executor&Cache.png)
+![avatar](img/Executor&Cache.png)
 在创建Configuration的时候，默认的是SimpleExecutor,在创建Executor的时候，用CachingExecutor包装了一下，调用走的CachingExecutor的包装逻辑，
 再走SimpleExecutor的相关逻辑。
 ```java
@@ -270,22 +286,3 @@ public class CachingExecutor implements Executor {
 
 这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。
 
-
-local cache 默认session缓存，事务问题
-https://segmentfault.com/a/1190000008207977
-
-mybitas 插件
-1 implements Interceptor
-2 @Intercepts(
-      {
-          @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
-          @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-      }
-  )
-3  @Override public Object intercept(Invocation invocation){}
-4 @Override public Object plugin(Object target) { return Plugin.wrap(target, this); }
-5 sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
-
-ResultHandler
-1 implements ResultHandler
-2 @Override public void handleResult(ResultContext<? extends V> context) 
