@@ -205,7 +205,7 @@ private static class DynamicCheckerTokenParser implements TokenHandler {
 所有关于mapper的准备工作做好之后，最终通过builderAssistant.addMappedStatement方法，把mapper中声明的所有操作存入Configuration的mappedStatements map集合中
 方便后面调用的时候从mappedStatements中通过id(mapp.xml文件的namespace+.+方法名 如com.xxx.xxx.UserMapper.selectByKey)做为Key取出对应的MappedStatement
 数据源，sql操作都已经加载到了Configuration中了，就差调用执行了。
-
+####接受调用创建会话
 下面开始进入调用流程，在调用的时候肯定是要先创建一个SqlSession的啦
 ```java
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
@@ -228,6 +228,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     //....
   }
 ```
+####处理请求
 在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor，在执行的时候又会设计到缓存Cache，
 Executor接口和Cache分别有以下几个实现类，后面会单独写一篇文章来介绍Executor和Cache。在我们的执行增删改查的sql时，最终都会通过Executor的doUpdate和doQuery来完成
 ![avatar](img/Executor&Cache.png)
@@ -282,7 +283,9 @@ public class CachingExecutor implements Executor {
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
 ```
-在执行完成后，会有相应的ResultHandler来处理返回结果，最终返回给调用方。
+
+####返回处理结果
+在执行完成后，会有相应的ResultHandler来处理返回结果(Map或者实际返回对象)，最终返回给调用方。
 
 这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。
 
