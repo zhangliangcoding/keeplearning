@@ -1,10 +1,14 @@
-##Mybatis概述
+---
+title : Mybatis概述
+--- 
 
-> MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 
+## Mybatis概述
+
+MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的 
 JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML 或注解来配置和映射原生信息，将接口
 和 Java 的 POJOs(Plain Old Java Objects,普通的 Java对象)映射成数据库中的记录。 -- 官网
 
-###整体架构
+### 整体架构
 ![avatar](img/Mybatis架构.png)
 通过上图可以对Mybatis的架构有一个大概的了解，我们从程序启动加载xml相关配置，到执行操作返回数据的路线，来进行流程梳理及源码解析，大致分为以下几个流程
 - 配置信息初始化
@@ -12,7 +16,7 @@ JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简�
 - 处理请求
 - 返回处理结果
 
-####配置信息初始化
+#### 配置信息初始化
 在Mybatis中，SqlSessionFactory 和 SqlSession 有着重要的作用，SqlSessionFactory为我们生成SqlSession，通过SqlSession我们可以进行增删改查等操作
 在SqlSessionFactory中，声明了Configuration类，此类包含了大量的配置基础信息，我们在项目中配置的mybatis-config.xml就是配置的Configuration类的内容
 例如Environment -> DataSource ,mapper.xml文件等，在不继承Spring相关的东西，单纯使用Mybatis进行数据操作,首先要配置的就是Configuration类的相关信息
@@ -228,7 +232,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     //....
   }
 ```
-####处理请求
+#### 处理请求
 在开启一个session的同时，创建了事务和执行器，最终的执行都是通过Executor执行器进行操作，重要的就是Executor，在执行的时候又会设计到缓存Cache，
 Executor接口和Cache分别有以下几个实现类，后面会单独写一篇文章来介绍Executor和Cache。在我们的执行增删改查的sql时，最终都会通过Executor的doUpdate和doQuery来完成
 ![avatar](img/Executor&Cache.png)
@@ -284,7 +288,7 @@ public class CachingExecutor implements Executor {
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
 ```
 
-####返回处理结果
+#### 返回处理结果
 在执行完成后，会有相应的ResultHandler来处理返回结果(Map或者实际返回对象)，最终返回给调用方。
 
 这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。后面对一些功能进行详细的讲解。
