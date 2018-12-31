@@ -206,7 +206,7 @@ private static class DynamicCheckerTokenParser implements TokenHandler {
 方便后面调用的时候从mappedStatements中通过id(mapp.xml文件的namespace+.+方法名 如com.xxx.xxx.UserMapper.selectByKey)做为Key取出对应的MappedStatement
 数据源，sql操作都已经加载到了Configuration中了，就差调用执行了。
 ####接受调用创建会话
-下面开始进入调用流程，在调用的时候肯定是要先创建一个SqlSession的啦
+下面开始进入调用流程，在调用的时候肯定是要先创建一个SqlSession
 ```java
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
     //....
@@ -215,9 +215,9 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
         try {
           final Environment environment = configuration.getEnvironment();
           final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-          tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
-          final Executor executor = configuration.newExecutor(tx, execType);
-          return new DefaultSqlSession(configuration, executor, autoCommit);
+          tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);//根据环境配置，生成事务控制
+          final Executor executor = configuration.newExecutor(tx, execType);//为executor配置事务
+          return new DefaultSqlSession(configuration, executor, autoCommit);//为session配置对应的配置信息、executor
         } catch (Exception e) {
           closeTransaction(tx); // may have fetched a connection so lets call close()
           throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
@@ -287,5 +287,5 @@ public class CachingExecutor implements Executor {
 ####返回处理结果
 在执行完成后，会有相应的ResultHandler来处理返回结果(Map或者实际返回对象)，最终返回给调用方。
 
-这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。
+这只是粗略的走了一下大概的流程，还有许多周边功能逻辑没有涉及到。后面对一些功能进行详细的讲解。
 
