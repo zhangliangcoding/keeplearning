@@ -12,4 +12,4 @@ title ; xxx
 
 5 pm2 -f start run.js 运行hexo
 
-6 hexo -d 推送到github
+6 hexo d 推送到github
