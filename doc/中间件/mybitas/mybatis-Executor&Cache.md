@@ -4,7 +4,7 @@ title : Mybatis重要的类
 
 ### Mybatis执行器 Executor
 ![avatar](img/Executor.png)
-https://blog.csdn.net/cleargreen/article/details/80614362
+
 如上图，Executor主要分为两大类 BaseExecutor 和 CachingExecutor
 #### BaseExecutor 
 抽象父类，定义了一些抽象方法和模板方法
@@ -106,13 +106,17 @@ public class DefaultCursor<T> implements Cursor<T> {
 
 ### StatementHandler
 ![avatar](img/statementHandler.png)
+
 StatementHandler在Mybatis中至关重要，主要有StatementHandler的子类进行与数据库交互，如上图，主要包括5个子类
+
 #### BaseStatementHandler 
+
 定义了一些公共方法，要子类去实现下面方法去实例化Statement 
 
 > protected abstract Statement instantiateStatement(Connection connection)
 
 实例化后，要子类去实现自己的update和query方法与数据库进行交互
+
 - SimpleStatementHandler 简单处理器
 
 - PreparedStatementHandler 预编译处理器
@@ -120,7 +124,9 @@ StatementHandler在Mybatis中至关重要，主要有StatementHandler的子类�
 - CallableStatementHandler 处理存储过程的处理
 
 ####RoutingStatementHandler
+
 这个类里面声明了一个delegate StatementHandler,所有操作都是委托给delegate，看下代码
+
 ```java
 public class RoutingStatementHandler implements StatementHandler {
 
@@ -147,7 +153,9 @@ public class RoutingStatementHandler implements StatementHandler {
 //....  
 }
 ```
+
 也就是说，我们通过这个类来路由到其他BaseStatementHandler的三个子类，看下在Configuration中怎么创建的StatementHandler
+
 ```java
 public class Configuration {
   //...
@@ -160,7 +168,9 @@ public class Configuration {
 }
 
 ```
+
 在上面说的Executor中，在调用Executor中的doUpdate和doQuery的时候都会创建一个StatementHandler，用SimpleExecutor来说明
+
 ```java
 public class SimpleExecutor extends BaseExecutor {
 
@@ -178,6 +188,7 @@ public class SimpleExecutor extends BaseExecutor {
   }
 }  
 ```
+
 这样是不是就穿起来了呢，后面还有ResultHandler，对结果进行处理，这个后面会提到
 
 ### 参数处理器 ParameterHandler 和 结果处理 ResultHandler 、ResultSetHandler
@@ -202,6 +213,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
 }
 ```
 ### 缓存Cache
+
 Mybatis缓存有一级缓存和二级缓存，一级缓存就是基于sqlSession的缓存，只在同一个sqlSession，相同条件的查询结果缓存才有效果,一级缓存默认使用的是PrepetualCache,内部就是使用了一个Map来存放缓存数据。
 在存入Map的时候，会根据一些条件生成对应的Key，如下：
 ```java
@@ -248,6 +260,7 @@ public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBo
 - rowBounds的offset和limit
 - 传递给JDBC的SQL
 - sql的传参
+
 除了默认的PrepetrualCache还有以下缓存
 - LruCache 
 最少使用淘汰，内有一个使用LinkedHashMap实现keyMap<key,key>，存放使用的key，使用了LInkedHashMap的getKey重新sort的特性，然后排到最后
@@ -271,7 +284,6 @@ public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBo
 待补充
 
 
-对于二级缓存，是跨sqlSession的，之后再事务提交之后才会生效，默认不开启，开启方法是在mapper.xml文件中添加
-```xml
-<cache/>
-```
+对于二级缓存，mapper级别的，一个namespace一个缓存，当执行mapper中的insert update delete操作时，会清空对应namespace的所有缓存。不建议使用二级缓存，因为大多数系统的查询不只是单表的查询。
+举例说明，假如有两个mapper，UserMapper和OrderMapper，都开启了二级缓存。在OrderMapper中有一个查询用户相关订单信息的sql，并且查询结果包含一些用户数据。当我查询A用户的订单信息后，被二级缓存缓存了下来。然后操作UserMapper修改用户信息。当再次查询A用户的订单信息的时候，通过OrderMapper返回的用户数据是修改之前的
+虽然二级缓存能够提升效率，但适应场景极少，并且约束不好容易出现问题。所以呢，二级缓存尽量不要使用。
