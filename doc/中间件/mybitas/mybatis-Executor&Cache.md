@@ -275,13 +275,13 @@ public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBo
 - SerializedCache 
 在调用delegate的putObject之前序列化value，调用delegate的getObject方法之后，反序列化value
 - SoftCache 
-待补充
+软引用缓存，类似WeakCache，不同的是使用的软引用，在内存不足的时候才会回收，其他和weakCache一样
 - SynchronizedCache 
 通过对putObject 和 getObject方法加synchronized关键字，来防止并发问题，获取锁后在调用delegate的相应方法
 - TransactionCache 
 事务缓存，只有在提交之后才会放入缓存，回滚的时候，reset缓存，当进行commit时，调用flushPendingEntries，把该事务中的数据刷到缓存中
 - WeakCache 
-待补充
+弱引用缓存，把value包装成了weakReference，再调用delegate的方法存入缓存map中，当value没有引用的时候，会被回收当getObject的时候，如果能获取到缓存数据，就放入到一个Deque中，保持强引用，防止被回收，但是Deque最长只有256，会清除最老的数据
 
 
 对于二级缓存，mapper级别的，一个namespace一个缓存，当执行mapper中的insert update delete操作时，会清空对应namespace的所有缓存。不建议使用二级缓存，因为大多数系统的查询不只是单表的查询。
