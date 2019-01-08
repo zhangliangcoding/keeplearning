@@ -15,6 +15,7 @@
         <module>mybitas-test</module>
         <module>zuul-demo</module>
         <module>eureka-server-demo</module>
+        <module>test-api</module>
     </modules>
 
     <parent>
