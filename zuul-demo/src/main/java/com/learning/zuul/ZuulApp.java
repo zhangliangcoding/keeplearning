@@ -14,7 +14,7 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
  */
 @SpringBootApplication
 @EnableZuulProxy
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.learning.api"})
 @EnableDiscoveryClient
 public class ZuulApp {
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @Date: 2019/1/8 15:30
  * @Description:
  */
-@FeignClient("test-api")
+@FeignClient("test-app")
 public interface TestApi {
 
     @GetMapping("/test")
