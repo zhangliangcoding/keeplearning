@@ -1,6 +1,7 @@
 package com.learning.zuul.security.filter;
 
 import com.learning.zuul.security.JWTToken;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.slf4j.Logger;
@@ -22,9 +23,10 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
 
     @Override
     protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
-        HttpServletRequest req = (HttpServletRequest) request;
+        /*HttpServletRequest req = (HttpServletRequest) request;
         String authorization = req.getHeader("Authorization");
-        return authorization != null;
+        return authorization != null;*/
+        return !isPublic(((ShiroHttpServletRequest) request).getRequestURI());
     }
 
 
@@ -87,6 +89,10 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
         }
     }
 
+    private boolean isPublic(String requestUri) {
+        return StringUtils.startsWith(requestUri, "/public/")||
+                StringUtils.startsWith(requestUri, "/login");
+    }
 
 
 }
