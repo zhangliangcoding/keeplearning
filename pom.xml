@@ -16,6 +16,7 @@
         <module>zuul-demo</module>
         <module>eureka-server-demo</module>
         <module>test-api</module>
+        <module>jetty-demo</module>
     </modules>
 
     <parent>
