@@ -17,6 +17,7 @@
         <module>eureka-server-demo</module>
         <module>test-api</module>
         <module>jetty-demo</module>
+        <module>netty</module>
     </modules>
 
     <parent>
