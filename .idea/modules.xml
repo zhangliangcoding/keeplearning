@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/base/base.iml" filepath="$PROJECT_DIR$/base/base.iml" />
+      <module fileurl="file://$PROJECT_DIR$/eureka-server-demo/eureka-server-demo.iml" filepath="$PROJECT_DIR$/eureka-server-demo/eureka-server-demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hystrix-demo/hystrix-demo.iml" filepath="$PROJECT_DIR$/hystrix-demo/hystrix-demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jetty-demo/jetty-demo.iml" filepath="$PROJECT_DIR$/jetty-demo/jetty-demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/keeplearning.iml" filepath="$PROJECT_DIR$/.idea/keeplearning.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mybitas-test/mybitas-test.iml" filepath="$PROJECT_DIR$/mybitas-test/mybitas-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/test-api/test-api.iml" filepath="$PROJECT_DIR$/test-api/test-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zuul-demo/zuul-demo.iml" filepath="$PROJECT_DIR$/zuul-demo/zuul-demo.iml" />
+    </modules>
+  </component>
+</project>

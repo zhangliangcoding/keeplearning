@@ -18,10 +18,10 @@ import java.util.concurrent.*;
 public class DemoMain {
 
     public DemoMain() {
-        ConfigurationManager.getConfigInstance().addProperty("hystrix.threadpool.default.coreSize", 8);
-        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.CreditCardCommand.execution.isolation.thread.timeoutInMilliseconds", 3000);
-        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.GetUserAccountCommand.execution.isolation.thread.timeoutInMilliseconds", 50);
-        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.default.metrics.rollingPercentile.numBuckets", 60);
+//        ConfigurationManager.getConfigInstance().addProperty("hystrix.threadpool.default.coreSize", 8);
+//        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.CreditCardCommand.execution.isolation.thread.timeoutInMilliseconds", 3000);
+//        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.GetUserAccountCommand.execution.isolation.thread.timeoutInMilliseconds", 50);
+//        ConfigurationManager.getConfigInstance().addProperty("hystrix.command.default.metrics.rollingPercentile.numBuckets", 60);
     }
 
 
