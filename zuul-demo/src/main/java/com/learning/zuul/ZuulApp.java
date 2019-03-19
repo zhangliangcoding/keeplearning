@@ -6,6 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * @Auther: zhangll
@@ -16,6 +17,7 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 @EnableZuulProxy
 @EnableFeignClients(basePackages = {"com.learning.api"})
 @EnableDiscoveryClient
+@EnableAspectJAutoProxy
 public class ZuulApp {
 
     public static void main(String[] args) {

@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/jetty-demo/jetty-demo.iml" filepath="$PROJECT_DIR$/jetty-demo/jetty-demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/keeplearning.iml" filepath="$PROJECT_DIR$/.idea/keeplearning.iml" />
       <module fileurl="file://$PROJECT_DIR$/mybitas-test/mybitas-test.iml" filepath="$PROJECT_DIR$/mybitas-test/mybitas-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/netty/netty.iml" filepath="$PROJECT_DIR$/netty/netty.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
       <module fileurl="file://$PROJECT_DIR$/test-api/test-api.iml" filepath="$PROJECT_DIR$/test-api/test-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/zuul-demo/zuul-demo.iml" filepath="$PROJECT_DIR$/zuul-demo/zuul-demo.iml" />

@@ -3,6 +3,7 @@ package com.learning.zuul.service.impl;
 
 
 import com.learning.zuul.domain.entity.User;
+import com.learning.zuul.log.LogOperate;
 import com.learning.zuul.service.UserService;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @LogOperate(desc = "查找用户")
     public User findByUsername(String username) {
         User user = new User();
         user.setUsername(username);
