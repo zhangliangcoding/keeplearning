@@ -1,0 +1,67 @@
+Index: doc/面试/readme.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- doc/面试/readme.md	(revision )
++++ doc/面试/readme.md	(revision )
+@@ -0,0 +1,5 @@
++###面试概括
++1.基础
++  - 集合
++  - 并发包
++  - 
+\ No newline at end of file
+Index: doc/中间件/netty/netty.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- doc/中间件/netty/netty.md	(revision 7e5f664fbba88f7a1ab7c1954c899ba151c4696d)
++++ doc/中间件/netty/netty.md	(revision )
+@@ -1,5 +1,1 @@
+-Kafka
+-
+-Rabbitmq
+-
+-ActivMq
++https://my.oschina.net/plucury/blog/192577#navbar-header -- zero copy
+Index: test/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/pom.xml	(revision 7e5f664fbba88f7a1ab7c1954c899ba151c4696d)
++++ test/pom.xml	(revision )
+@@ -20,6 +20,10 @@
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-web</artifactId>
+         </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-amqp</artifactId>
++        </dependency>
+ 
+         <dependency>
+             <groupId>org.springframework.cloud</groupId>
+Index: doc/Java基础/JUC/ReentrantLock.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- doc/Java基础/JUC/ReentrantLock.md	(revision )
++++ doc/Java基础/JUC/ReentrantLock.md	(revision )
+@@ -0,0 +1,12 @@
++ReentrantLock 内部包含一个实现AQS的内部类Sync,还有两个继承Sync的子类，FairSync(公平锁)和NoneFairSync(非公平锁)，通过这两种锁，来实现ReentrantLock的锁机制
++
++首先AQS(AbstractQueuedSynchronizer)
++维护一个Node，形成链表
++每一个node都包含preNode，nextNode，waitStatus(node的等待状态)，thread，status(锁的状态)
++AQS也维护了一个status，描述当前的锁状态，都是通过volatile进行修饰
++通过检查此状态，当status>0时，说明此锁在使用中，针对可重入锁，判断锁拥有者是不是当前线程
++
++ReentrantLock lock = new ReentrantLock();
++当进行lock.lock()获取锁时，当是公平锁-走FairSync的lock 非公平锁 走NoneFairSync
++公平锁是对当前请求获取锁的线程进行入队，放在上面有node组成的链表的末端
++非公平锁直接去获取锁，如果获取不到，在进行入队放在链表的末端
+\ No newline at end of file
