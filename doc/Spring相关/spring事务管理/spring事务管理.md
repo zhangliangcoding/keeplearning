@@ -25,8 +25,8 @@
 
 - READ_UNCOMMITED 最低隔离级别，读未提交，造成脏读
 - READ_COMMITED 读提交，造成幻读，不可重复度
-- REPEATABLE_READ 
-- READ_SERIALISABLE
+- REPEATABLE_READ 可重复读，解决的不可重复度和脏读，还是会造成幻读
+- READ_SERIALISABLE 序列化读，解决所有问题，但是效率低
 
 #### Spring事务传播行为
 
@@ -63,3 +63,8 @@
 
 #### Spring怎么实现事务管理
 
+##### 顶层接口
+
+- PlatformTransactionManager 事务管理核心接口
+- TransactionDefination 事务定义接口，定义事务的隔离级别和传播行为类型等
+- TransactionStatus 事务状态接口，记录事务的状态
