@@ -7,15 +7,15 @@ package com.learning.classTest;
  */
 public class Demo extends BaseClass {
 
-    private String name;
-
-    public Demo(String name) {
-        super();
-        this.name = name;
+    static {
+        System.out.println("static area");
     }
 
+    public Demo() {
+        System.out.println("demo constructor");
+    }
 
-    public void test(){
-
+    public static void main(String[] args) {
+        Demo demo = new Demo();
     }
 }
